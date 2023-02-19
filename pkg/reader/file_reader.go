@@ -3,7 +3,6 @@ package reader
 
 import (
 	"errors"
-	"io"
 	"os"
 )
 
@@ -22,8 +21,8 @@ type fileReader struct {
 // FileReader interface gives you some options for reading from a file
 type FileReader interface {
 	// ReadData func provides reading data from file by defining custom pos & seek option
-	ReadData(pos int64, len int, seek int) ([]byte, error)
-	// ReadAllData func provides reading all data from
+	ReadData(offset int64, len int, seek int) ([]byte, error)
+	// ReadAllData func provides reading all data from file
 	ReadAllData() ([]byte, error)
 	// Close func provides close reader instance
 	Close() error
@@ -44,10 +43,10 @@ func NewFileReader(filePath string) (FileReader, error) {
 }
 
 // ReadData func provides reading data from file by defining custom pos & seek option
-func (r *fileReader) ReadData(pos int64, len int, seek int) ([]byte, error) {
+func (r *fileReader) ReadData(offset int64, len int, seek int) ([]byte, error) {
 	buff := make([]byte, len)
 
-	if _, err := r.rOs.Seek(pos, seek); err != nil {
+	if _, err := r.rOs.Seek(offset, seek); err != nil {
 		return nil, ErrCouldNotSeek
 	}
 
@@ -58,13 +57,22 @@ func (r *fileReader) ReadData(pos int64, len int, seek int) ([]byte, error) {
 	return buff, nil
 }
 
-// ReadAllData func provides reading all data from
+// ReadAllData func provides reading all data from file
 func (r *fileReader) ReadAllData() ([]byte, error) {
-	if buff, err := io.ReadAll(r.rOs); err != nil {
+	var buffSize int64 = 0
+
+	if fInfo, err := r.rOs.Stat(); err != nil {
 		return nil, ErrCouldNotReadAll
 	} else {
-		return buff, nil
+		buffSize = fInfo.Size()
 	}
+
+	buff := make([]byte, buffSize)
+	if _, err := r.rOs.Read(buff); err != nil {
+		return nil, ErrCouldNotReadAll
+	}
+
+	return buff, nil
 }
 
 // Close func provides close reader instance
