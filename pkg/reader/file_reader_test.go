@@ -176,6 +176,95 @@ func TestFileReader_ReadData_CouldNotReadData(t *testing.T) {
 
 }
 
+func TestFileReader_ReadAllData(t *testing.T) {
+
+	initializeRequiredSpaceForTest()
+	fReader, _ := NewFileReader(validFilePath)
+	defer os.RemoveAll(basePath)
+	defer fReader.Close()
+
+	//build our needed testcase struct
+	type testCase struct {
+		test         string
+		writeDataLen int
+		expectedErr  error
+	}
+
+	//create testcase scenarios
+	tc := testCase{
+		test:         "valid read all data",
+		writeDataLen: 5,
+		expectedErr:  nil,
+	}
+
+	//initialize required things before run actual
+	randomBuff := make([]byte, tc.writeDataLen)
+	rand.Read(randomBuff)
+	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
+
+	//scenario
+	_, err := fReader.ReadAllData()
+
+	// Check if the error matches the expected error
+	if err != tc.expectedErr {
+		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
+	}
+}
+
+func TestFileReader_Close_CouldNotClose(t *testing.T) {
+	initializeRequiredSpaceForTest()
+	fReader, _ := NewFileReader(validFilePath)
+	defer os.RemoveAll(basePath)
+
+	//build our needed testcase struct
+	type testCase struct {
+		test        string
+		expectedErr error
+	}
+
+	//create testcase scenarios
+	tc := testCase{
+		test:        "valid close file reader",
+		expectedErr: nil,
+	}
+
+	//scenario
+	err := fReader.Close()
+
+	// Check if the error matches the expected error
+	if err != tc.expectedErr {
+		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
+	}
+}
+
+func TestFileReader_Close(t *testing.T) {
+	initializeRequiredSpaceForTest()
+	fReader, _ := NewFileReader(validFilePath)
+	defer os.RemoveAll(basePath)
+
+	//build our needed testcase struct
+	type testCase struct {
+		test        string
+		expectedErr error
+	}
+
+	//create testcase scenarios
+	tc := testCase{
+		test:        "could not close file reader",
+		expectedErr: ErrCouldNotClose,
+	}
+
+	fReader.Close()
+
+	//scenario
+	err := fReader.Close()
+
+	// Check if the error matches the expected error
+	if err != tc.expectedErr {
+		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
+	}
+}
+
 func initializeRequiredSpaceForTest() {
 	//initialize required variables for test
 	basePath = os.Getenv("BASE_PATH")
