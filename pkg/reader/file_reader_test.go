@@ -56,6 +56,46 @@ func TestNewFileReader(t *testing.T) {
 	//delete created directory with files
 }
 
+func TestFileReader_ReadData(t *testing.T) {
+
+	initializeRequiredSpaceForTest()
+	fReader, _ := NewFileReader(validFilePath)
+	defer os.RemoveAll(basePath)
+	defer fReader.Close()
+
+	//build our needed testcase struct
+	type testCase struct {
+		test         string
+		writeDataLen int
+		buffLen      int
+		offset       int64
+		expectedErr  error
+	}
+
+	//create testcase scenarios
+	tc := testCase{
+		test:         "valid read data",
+		writeDataLen: 5,
+		buffLen:      5,
+		offset:       0,
+		expectedErr:  nil,
+	}
+
+	//initialize required things before run actual
+	randomBuff := make([]byte, tc.writeDataLen)
+	rand.Read(randomBuff)
+	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
+
+	//scenario
+	_, err := fReader.ReadData(tc.offset, tc.buffLen, io.SeekCurrent)
+
+	// Check if the error matches the expected error
+	if err != tc.expectedErr {
+		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
+	}
+
+}
+
 func TestFileReader_ReadData_CouldNotSeek(t *testing.T) {
 
 	initializeRequiredSpaceForTest()
@@ -79,6 +119,46 @@ func TestFileReader_ReadData_CouldNotSeek(t *testing.T) {
 		buffLen:      5,
 		offset:       -1,
 		expectedErr:  ErrCouldNotSeek,
+	}
+
+	//initialize required things before run actual
+	randomBuff := make([]byte, tc.writeDataLen)
+	rand.Read(randomBuff)
+	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
+
+	//scenario
+	_, err := fReader.ReadData(tc.offset, tc.buffLen, io.SeekCurrent)
+
+	// Check if the error matches the expected error
+	if err != tc.expectedErr {
+		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
+	}
+
+}
+
+func TestFileReader_ReadData_CouldNotReadData(t *testing.T) {
+
+	initializeRequiredSpaceForTest()
+	fReader, _ := NewFileReader(validFilePath)
+	defer os.RemoveAll(basePath)
+	defer fReader.Close()
+
+	//build our needed testcase struct
+	type testCase struct {
+		test         string
+		writeDataLen int
+		buffLen      int
+		offset       int64
+		expectedErr  error
+	}
+
+	//create testcase scenarios
+	tc := testCase{
+		test:         "could not read data",
+		writeDataLen: 5,
+		buffLen:      10,
+		offset:       10,
+		expectedErr:  ErrCouldNotRead,
 	}
 
 	//initialize required things before run actual
