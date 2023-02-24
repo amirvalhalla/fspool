@@ -19,10 +19,10 @@ const (
 * flushSize: flushing into disk for each instance by size (unit is byte)
  */
 type FSPoolConfiguration struct {
-	memoryRent    uint64
-	limit         uint32
-	readerLimit   uint32
-	flushType     FSPoolFlushType
-	flushDuration time.Duration
-	flushSize     uint64
+	MemoryRent    uint64          //required
+	Limit         uint32          //required
+	ReaderLimit   uint32          //required
+	FlushType     FSPoolFlushType //required
+	FlushDuration time.Duration   //required (depends on FlushType)
+	FlushSize     uint64          //required  (depends on FlushType)
 }

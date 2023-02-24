@@ -3,10 +3,14 @@ package cfgs
 import "time"
 
 type FSFlushType uint8
+type FSPerm uint8
 
 const (
 	FlushBySize FSFlushType = 0
 	FlushByTime FSFlushType = 1
+	ROnly       FSPerm      = 0
+	WOnly       FSPerm      = 1
+	RW          FSPerm      = 3
 )
 
 /*
@@ -18,9 +22,11 @@ const (
 * flushSize: flushing into disk for each instance by size (unit is byte)
  */
 type FSConfiguration struct {
-	memoryRent    uint64
-	readerLimit   uint32
-	flushType     FSFlushType
-	flushDuration time.Duration
-	flushSize     uint64
+	FsPerm        FSPerm //required
+	FilePath      string //required
+	MemoryRent    uint64
+	ReaderLimit   uint32
+	FlushType     FSFlushType
+	FlushDuration time.Duration
+	FlushSize     uint64
 }
