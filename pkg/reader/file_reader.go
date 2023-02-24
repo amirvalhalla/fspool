@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	ErrCouldNotOpenFile = errors.New("could not open file")
-	ErrCouldNotSeek     = errors.New("could not seek")
-	ErrCouldNotRead     = errors.New("could not read data")
-	ErrCouldNotReadAll  = errors.New("could not read all data")
-	ErrCouldNotClose    = errors.New("could not close")
+	ErrFileReaderCouldNotOpenFile = errors.New("could not open file")
+	ErrFileReaderCouldNotSeek     = errors.New("could not seek")
+	ErrFileReaderCouldNotRead     = errors.New("could not read data")
+	ErrFileReaderCouldNotReadAll  = errors.New("could not read all data")
+	ErrFileReaderCouldNotClose    = errors.New("could not close")
 )
 
 type fileReader struct {
@@ -34,7 +34,7 @@ func NewFileReader(filePath string) (FileReader, error) {
 	rOs := new(os.File)
 
 	if rOs, err = os.OpenFile(filePath, os.O_RDONLY, 0444); err != nil {
-		return &fileReader{}, ErrCouldNotOpenFile
+		return &fileReader{}, ErrFileReaderCouldNotOpenFile
 	}
 
 	return &fileReader{
@@ -47,11 +47,11 @@ func (r *fileReader) ReadData(offset int64, len int, seek int) ([]byte, error) {
 	buff := make([]byte, len)
 
 	if _, err := r.rOs.Seek(offset, seek); err != nil {
-		return nil, ErrCouldNotSeek
+		return nil, ErrFileReaderCouldNotSeek
 	}
 
 	if _, err := r.rOs.Read(buff); err != nil {
-		return nil, ErrCouldNotRead
+		return nil, ErrFileReaderCouldNotRead
 	}
 
 	return buff, nil
@@ -62,14 +62,14 @@ func (r *fileReader) ReadAllData() ([]byte, error) {
 	var buffSize int64 = 0
 
 	if fInfo, err := r.rOs.Stat(); err != nil {
-		return nil, ErrCouldNotReadAll
+		return nil, ErrFileReaderCouldNotReadAll
 	} else {
 		buffSize = fInfo.Size()
 	}
 
 	buff := make([]byte, buffSize)
 	if _, err := r.rOs.Read(buff); err != nil {
-		return nil, ErrCouldNotReadAll
+		return nil, ErrFileReaderCouldNotReadAll
 	}
 
 	return buff, nil
@@ -78,7 +78,7 @@ func (r *fileReader) ReadAllData() ([]byte, error) {
 // Close func provides close reader instance
 func (r *fileReader) Close() error {
 	if err := r.rOs.Close(); err != nil {
-		return ErrCouldNotClose
+		return ErrFileReaderCouldNotClose
 	} else {
 		return nil
 	}

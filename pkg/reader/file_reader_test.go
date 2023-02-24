@@ -31,7 +31,7 @@ func TestNewFileReader(t *testing.T) {
 		{
 			test:        "empty file path",
 			path:        "",
-			expectedErr: ErrCouldNotOpenFile,
+			expectedErr: ErrFileReaderCouldNotOpenFile,
 		},
 		{
 			test:        "valid file path",
@@ -53,7 +53,6 @@ func TestNewFileReader(t *testing.T) {
 		})
 	}
 
-	//delete created directory with files
 }
 
 func TestFileReader_ReadData(t *testing.T) {
@@ -118,7 +117,7 @@ func TestFileReader_ReadData_CouldNotSeek(t *testing.T) {
 		writeDataLen: 5,
 		buffLen:      5,
 		offset:       -1,
-		expectedErr:  ErrCouldNotSeek,
+		expectedErr:  ErrFileReaderCouldNotSeek,
 	}
 
 	//initialize required things before run actual
@@ -158,7 +157,7 @@ func TestFileReader_ReadData_CouldNotReadData(t *testing.T) {
 		writeDataLen: 5,
 		buffLen:      10,
 		offset:       10,
-		expectedErr:  ErrCouldNotRead,
+		expectedErr:  ErrFileReaderCouldNotRead,
 	}
 
 	//initialize required things before run actual
@@ -211,7 +210,7 @@ func TestFileReader_ReadAllData(t *testing.T) {
 	}
 }
 
-func TestFileReader_Close_CouldNotClose(t *testing.T) {
+func TestFileReader_Close(t *testing.T) {
 	initializeRequiredSpaceForTest()
 	fReader, _ := NewFileReader(validFilePath)
 	defer os.RemoveAll(basePath)
@@ -237,7 +236,7 @@ func TestFileReader_Close_CouldNotClose(t *testing.T) {
 	}
 }
 
-func TestFileReader_Close(t *testing.T) {
+func TestFileReader_Close_Close_CouldNotClose(t *testing.T) {
 	initializeRequiredSpaceForTest()
 	fReader, _ := NewFileReader(validFilePath)
 	defer os.RemoveAll(basePath)
@@ -251,7 +250,7 @@ func TestFileReader_Close(t *testing.T) {
 	//create testcase scenarios
 	tc := testCase{
 		test:        "could not close file reader",
-		expectedErr: ErrCouldNotClose,
+		expectedErr: ErrFileReaderCouldNotClose,
 	}
 
 	fReader.Close()
