@@ -2,6 +2,7 @@ package reader
 
 import (
 	"io"
+	"log"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -272,6 +273,8 @@ func initializeRequiredSpaceForTest() {
 	if err != nil {
 		panic(err)
 	}
+
+	log.Println("just for test yml")
 
 	//initialize required variables for test
 	basePath = filepath.Join(dir, "testDir")
