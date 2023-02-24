@@ -266,9 +266,16 @@ func TestFileReader_Close(t *testing.T) {
 }
 
 func initializeRequiredSpaceForTest() {
+
+	//get current dir
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
 	//initialize required variables for test
-	basePath = os.Getenv("BASE_PATH")
-	fileName = os.Getenv("FILE_NAME")
+	basePath = filepath.Join(dir, "testDir")
+	fileName = "test.txt"
 	validFilePath = filepath.Join(basePath, fileName)
 
 	//build file and directory for testcase scenario , it automatically will delete after test ran
