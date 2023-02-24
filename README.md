@@ -6,3 +6,4 @@
 
 ### Requirements:
 * Go 1.19 >=
+* CGO Required? No 
