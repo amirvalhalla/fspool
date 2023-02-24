@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	ErrFileReaderCouldNotOpenFile = errors.New("could not open file")
-	ErrFileReaderCouldNotSeek     = errors.New("could not seek")
-	ErrFileReaderCouldNotRead     = errors.New("could not read data")
-	ErrFileReaderCouldNotReadAll  = errors.New("could not read all data")
-	ErrFileReaderCouldNotClose    = errors.New("could not close")
+	ErrFileReaderCouldNotOpenFile = errors.New("package reader - could not open file")
+	ErrFileReaderCouldNotSeek     = errors.New("package reader - could not seek")
+	ErrFileReaderCouldNotRead     = errors.New("package reader - could not read data")
+	ErrFileReaderCouldNotReadAll  = errors.New("package reader - could not read all data")
+	ErrFileReaderCouldNotClose    = errors.New("package reader - could not close")
 )
 
 type fileReader struct {

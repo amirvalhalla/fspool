@@ -1,6 +1,9 @@
 package cfgs
 
-import "time"
+import (
+	"github.com/amirvalhalla/fspool/pkg/cfgs"
+	"time"
+)
 
 type FSPoolFlushType uint8
 
@@ -19,6 +22,7 @@ const (
 * flushSize: flushing into disk for each instance by size (unit is byte)
  */
 type FSPoolConfiguration struct {
+	Perm          cfgs.FSPerm     //required
 	MemoryRent    uint64          //required
 	Limit         uint32          //required
 	ReaderLimit   uint32          //required
