@@ -30,6 +30,7 @@ type FileReader interface {
 	Close() error
 }
 
+// File override os.File interface of golang with ROnly interfaces
 type File interface {
 	io.Reader
 	io.ReaderAt
