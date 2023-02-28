@@ -1,285 +1,136 @@
 package reader
 
 import (
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"io"
-	"math/rand"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
-var (
-	basePath      string
-	fileName      string
-	validFilePath string
-)
-
 func TestNewFileReader(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	initializeRequiredSpaceForTest()
-	defer os.RemoveAll(basePath)
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//build our needed testcase struct
-	type testCase struct {
-		test        string
-		path        string
-		expectedErr error
-	}
-
-	//create testcase scenarios
-	testCases := []testCase{
-		{
-			test:        "empty file path",
-			path:        "",
-			expectedErr: ErrFileReaderCouldNotOpenFile,
-		},
-		{
-			test:        "valid file path",
-			path:        validFilePath,
-			expectedErr: nil,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.test, func(t *testing.T) {
-			//create new file reader
-			fReader, err := NewFileReader(tc.path)
-			defer fReader.Close()
-
-			// Check if the error matches the expected error
-			if err != tc.expectedErr {
-				t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-			}
-		})
-	}
-
+	assert.NotNil(t, fReader)
 }
 
 func TestFileReader_ReadData(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	initializeRequiredSpaceForTest()
-	fReader, _ := NewFileReader(validFilePath)
-	defer os.RemoveAll(basePath)
-	defer fReader.Close()
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//build our needed testcase struct
-	type testCase struct {
-		test         string
-		writeDataLen int
-		buffLen      int
-		offset       int64
-		expectedErr  error
-	}
+	mockFile.EXPECT().Seek(int64(0), 0).Return(int64(0), nil).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).Times(1)
 
-	//create testcase scenarios
-	tc := testCase{
-		test:         "valid read data",
-		writeDataLen: 5,
-		buffLen:      5,
-		offset:       0,
-		expectedErr:  nil,
-	}
+	_, err := fReader.ReadData(0, 0, io.SeekStart)
 
-	//initialize required things before run actual
-	randomBuff := make([]byte, tc.writeDataLen)
-	rand.Read(randomBuff)
-	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
-
-	//scenario
-	_, err := fReader.ReadData(tc.offset, tc.buffLen, io.SeekCurrent)
-
-	// Check if the error matches the expected error
-	if err != tc.expectedErr {
-		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-	}
-
+	assert.Nil(t, err)
 }
 
 func TestFileReader_ReadData_CouldNotSeek(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	initializeRequiredSpaceForTest()
-	fReader, _ := NewFileReader(validFilePath)
-	defer os.RemoveAll(basePath)
-	defer fReader.Close()
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//build our needed testcase struct
-	type testCase struct {
-		test         string
-		writeDataLen int
-		buffLen      int
-		offset       int64
-		expectedErr  error
-	}
+	mockFile.EXPECT().Seek(int64(0), 0).Return(int64(0), ErrFileReaderCouldNotSeek).Times(1)
 
-	//create testcase scenarios
-	tc := testCase{
-		test:         "seek over file len",
-		writeDataLen: 5,
-		buffLen:      5,
-		offset:       -1,
-		expectedErr:  ErrFileReaderCouldNotSeek,
-	}
+	_, err := fReader.ReadData(0, 0, io.SeekStart)
 
-	//initialize required things before run actual
-	randomBuff := make([]byte, tc.writeDataLen)
-	rand.Read(randomBuff)
-	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
-
-	//scenario
-	_, err := fReader.ReadData(tc.offset, tc.buffLen, io.SeekCurrent)
-
-	// Check if the error matches the expected error
-	if err != tc.expectedErr {
-		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-	}
-
+	assert.EqualError(t, err, ErrFileReaderCouldNotSeek.Error())
 }
 
-func TestFileReader_ReadData_CouldNotReadData(t *testing.T) {
+func TestFileReader_ReadData_CouldNotRead(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	initializeRequiredSpaceForTest()
-	fReader, _ := NewFileReader(validFilePath)
-	defer os.RemoveAll(basePath)
-	defer fReader.Close()
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//build our needed testcase struct
-	type testCase struct {
-		test         string
-		writeDataLen int
-		buffLen      int
-		offset       int64
-		expectedErr  error
-	}
+	mockFile.EXPECT().Seek(int64(0), 0).Return(int64(0), nil).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, ErrFileReaderCouldNotRead).Times(1)
 
-	//create testcase scenarios
-	tc := testCase{
-		test:         "could not read data",
-		writeDataLen: 5,
-		buffLen:      10,
-		offset:       10,
-		expectedErr:  ErrFileReaderCouldNotRead,
-	}
+	_, err := fReader.ReadData(0, 0, io.SeekStart)
 
-	//initialize required things before run actual
-	randomBuff := make([]byte, tc.writeDataLen)
-	rand.Read(randomBuff)
-	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
-
-	//scenario
-	_, err := fReader.ReadData(tc.offset, tc.buffLen, io.SeekCurrent)
-
-	// Check if the error matches the expected error
-	if err != tc.expectedErr {
-		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-	}
-
+	assert.EqualError(t, err, ErrFileReaderCouldNotRead.Error())
 }
 
 func TestFileReader_ReadAllData(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	initializeRequiredSpaceForTest()
-	fReader, _ := NewFileReader(validFilePath)
-	defer os.RemoveAll(basePath)
-	defer fReader.Close()
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//build our needed testcase struct
-	type testCase struct {
-		test         string
-		writeDataLen int
-		expectedErr  error
-	}
+	mockFile.EXPECT().Stat().Return(mockFile, nil).Times(1)
+	mockFile.EXPECT().Size().Return(int64(0)).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).Times(1)
 
-	//create testcase scenarios
-	tc := testCase{
-		test:         "valid read all data",
-		writeDataLen: 5,
-		expectedErr:  nil,
-	}
-
-	//initialize required things before run actual
-	randomBuff := make([]byte, tc.writeDataLen)
-	rand.Read(randomBuff)
-	os.WriteFile(validFilePath, randomBuff, os.ModePerm)
-
-	//scenario
 	_, err := fReader.ReadAllData()
 
-	// Check if the error matches the expected error
-	if err != tc.expectedErr {
-		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-	}
+	assert.Nil(t, err)
+}
+
+func TestFileReader_ReadAllData_CouldNotGetFileStat(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
+
+	mockFile.EXPECT().Stat().Return(nil, ErrFileReaderCouldNotGetFileStat).Times(1)
+
+	_, err := fReader.ReadAllData()
+
+	assert.EqualError(t, err, ErrFileReaderCouldNotGetFileStat.Error())
+}
+
+func TestFileReader_ReadAllData_CouldNotReadAllData(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
+
+	mockFile.EXPECT().Stat().Return(mockFile, nil).Times(1)
+	mockFile.EXPECT().Size().Return(int64(0)).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, ErrFileReaderCouldNotReadAllData).Times(1)
+
+	_, err := fReader.ReadAllData()
+
+	assert.EqualError(t, err, ErrFileReaderCouldNotReadAllData.Error())
 }
 
 func TestFileReader_Close(t *testing.T) {
-	initializeRequiredSpaceForTest()
-	fReader, _ := NewFileReader(validFilePath)
-	defer os.RemoveAll(basePath)
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	//build our needed testcase struct
-	type testCase struct {
-		test        string
-		expectedErr error
-	}
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//create testcase scenarios
-	tc := testCase{
-		test:        "valid close file reader",
-		expectedErr: nil,
-	}
+	mockFile.EXPECT().Close().Return(nil).Times(1)
 
-	//scenario
 	err := fReader.Close()
 
-	// Check if the error matches the expected error
-	if err != tc.expectedErr {
-		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-	}
+	assert.Nil(t, err)
 }
 
-func TestFileReader_Close_Close_CouldNotClose(t *testing.T) {
-	initializeRequiredSpaceForTest()
-	fReader, _ := NewFileReader(validFilePath)
-	defer os.RemoveAll(basePath)
+func TestFileReader_Close_CouldNotClose(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
 
-	//build our needed testcase struct
-	type testCase struct {
-		test        string
-		expectedErr error
-	}
+	mockFile := NewMockFile(mockCtrl)
+	fReader := NewFileReader(mockFile)
 
-	//create testcase scenarios
-	tc := testCase{
-		test:        "could not close file reader",
-		expectedErr: ErrFileReaderCouldNotClose,
-	}
+	mockFile.EXPECT().Close().Return(ErrFileReaderCouldNotClose).Times(1)
 
-	fReader.Close()
-
-	//scenario
 	err := fReader.Close()
 
-	// Check if the error matches the expected error
-	if err != tc.expectedErr {
-		t.Errorf("Expected error %v, got %v", tc.expectedErr, err)
-	}
-}
-
-func initializeRequiredSpaceForTest() {
-
-	//get current dir
-	dir, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	//initialize required variables for test
-	basePath = filepath.Join(dir, "testDir")
-	fileName = "test.txt"
-	validFilePath = filepath.Join(basePath, fileName)
-
-	//build file and directory for testcase scenario , it automatically will delete after test ran
-	os.Mkdir(basePath, os.ModePerm)
-	if f, err := os.Create(validFilePath); err == nil {
-		f.Close()
-	}
+	assert.EqualError(t, err, ErrFileReaderCouldNotClose.Error())
 }

@@ -3,19 +3,21 @@ package reader
 
 import (
 	"errors"
+	"io"
+	"io/fs"
 	"os"
 )
 
 var (
-	ErrFileReaderCouldNotOpenFile = errors.New("package reader - could not open file")
-	ErrFileReaderCouldNotSeek     = errors.New("package reader - could not seek")
-	ErrFileReaderCouldNotRead     = errors.New("package reader - could not read data")
-	ErrFileReaderCouldNotReadAll  = errors.New("package reader - could not read all data")
-	ErrFileReaderCouldNotClose    = errors.New("package reader - could not close")
+	ErrFileReaderCouldNotSeek        = errors.New("package reader - could not seek")
+	ErrFileReaderCouldNotRead        = errors.New("package reader - could not read data")
+	ErrFileReaderCouldNotReadAllData = errors.New("package reader - could not read all data")
+	ErrFileReaderCouldNotClose       = errors.New("package reader - could not close")
+	ErrFileReaderCouldNotGetFileStat = errors.New("package reader - could not get file stat")
 )
 
 type fileReader struct {
-	rOs *os.File
+	rFile File
 }
 
 // FileReader interface gives you some options for reading from a file
@@ -28,29 +30,37 @@ type FileReader interface {
 	Close() error
 }
 
+type File interface {
+	io.Reader
+	io.ReaderAt
+	io.Seeker
+	io.Closer
+	io.ByteReader
+	io.ReaderFrom
+	io.RuneReader
+	io.RuneScanner
+	io.ReadSeekCloser
+	io.ReadSeeker
+	fs.FileInfo
+	Stat() (os.FileInfo, error)
+}
+
 // NewFileReader func provides new instance of FileReader interface with unique memory addresses of its objects
-func NewFileReader(filePath string) (FileReader, error) {
-	var err error
-	rOs := new(os.File)
-
-	if rOs, err = os.OpenFile(filePath, os.O_RDONLY, 0444); err != nil {
-		return &fileReader{}, ErrFileReaderCouldNotOpenFile
-	}
-
+func NewFileReader(file File) FileReader {
 	return &fileReader{
-		rOs: rOs,
-	}, nil
+		rFile: file,
+	}
 }
 
 // ReadData func provides reading data from file by defining custom pos & seek option
 func (r *fileReader) ReadData(offset int64, len int, seek int) ([]byte, error) {
 	buff := make([]byte, len)
 
-	if _, err := r.rOs.Seek(offset, seek); err != nil {
+	if _, err := r.rFile.Seek(offset, seek); err != nil {
 		return nil, ErrFileReaderCouldNotSeek
 	}
 
-	if _, err := r.rOs.Read(buff); err != nil {
+	if _, err := r.rFile.Read(buff); err != nil {
 		return nil, ErrFileReaderCouldNotRead
 	}
 
@@ -61,15 +71,15 @@ func (r *fileReader) ReadData(offset int64, len int, seek int) ([]byte, error) {
 func (r *fileReader) ReadAllData() ([]byte, error) {
 	var buffSize int64 = 0
 
-	if fInfo, err := r.rOs.Stat(); err != nil {
-		return nil, ErrFileReaderCouldNotReadAll
+	if fInfo, err := r.rFile.Stat(); err != nil {
+		return nil, ErrFileReaderCouldNotGetFileStat
 	} else {
 		buffSize = fInfo.Size()
 	}
 
 	buff := make([]byte, buffSize)
-	if _, err := r.rOs.Read(buff); err != nil {
-		return nil, ErrFileReaderCouldNotReadAll
+	if _, err := r.rFile.Read(buff); err != nil {
+		return nil, ErrFileReaderCouldNotReadAllData
 	}
 
 	return buff, nil
@@ -77,7 +87,7 @@ func (r *fileReader) ReadAllData() ([]byte, error) {
 
 // Close func provides close reader instance
 func (r *fileReader) Close() error {
-	if err := r.rOs.Close(); err != nil {
+	if err := r.rFile.Close(); err != nil {
 		return ErrFileReaderCouldNotClose
 	} else {
 		return nil
