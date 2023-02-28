@@ -3,18 +3,17 @@ package writer
 
 import (
 	"errors"
-	"os"
+	"io"
 )
 
 var (
-	ErrFileWriterCouldNotOpenFile = errors.New("package writer - could not open file")
-	ErrFileWriterCouldNotSeek     = errors.New("package writer - could not seek")
-	ErrFileWriterCouldNotWrite    = errors.New("package writer - could not write data into file")
-	ErrFileWriterCouldNotClose    = errors.New("package writer - could not close")
+	ErrFileWriterCouldNotSeek  = errors.New("package writer - could not seek")
+	ErrFileWriterCouldNotWrite = errors.New("package writer - could not write data into file")
+	ErrFileWriterCouldNotClose = errors.New("package writer - could not close")
 )
 
 type fileWriter struct {
-	wOs *os.File
+	wFile File
 }
 
 // FileWriter interface gives you some options for writing into a file
@@ -25,29 +24,33 @@ type FileWriter interface {
 	Close() error
 }
 
+// File override os.File interface of golang with WOnly interfaces
+type File interface {
+	io.Writer
+	io.WriterAt
+	io.WriterTo
+	io.WriteCloser
+	io.WriteSeeker
+	io.ByteWriter
+	io.StringWriter
+}
+
 // NewFileWriter func provides new instance of FileWriter interface with unique memory addresses of its objects
-func NewFileWriter(filePath string) (FileWriter, error) {
-	var err error
-	wOs := new(os.File)
-
-	if wOs, err = os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666); err != nil {
-		return &fileWriter{}, ErrFileWriterCouldNotOpenFile
-	}
-
+func NewFileWriter(file File) FileWriter {
 	return &fileWriter{
-		wOs: wOs,
-	}, nil
+		wFile: file,
+	}
 }
 
 // AddOrUpdateData will add or update raw data into file
 func (w *fileWriter) AddOrUpdateData(rawData []byte, offset int64, seek int) error {
-	_, err := w.wOs.Seek(offset, seek)
+	_, err := w.wFile.Seek(offset, seek)
 
 	if err != nil {
 		return ErrFileWriterCouldNotSeek
 	}
 
-	_, err = w.wOs.Write(rawData)
+	_, err = w.wFile.Write(rawData)
 
 	if err != nil {
 		return ErrFileWriterCouldNotWrite
@@ -58,7 +61,7 @@ func (w *fileWriter) AddOrUpdateData(rawData []byte, offset int64, seek int) err
 
 // Close func provides close writer instance
 func (w *fileWriter) Close() error {
-	if err := w.wOs.Close(); err != nil {
+	if err := w.wFile.Close(); err != nil {
 		return ErrFileWriterCouldNotClose
 	} else {
 		return nil
