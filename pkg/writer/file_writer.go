@@ -7,10 +7,10 @@ import (
 )
 
 var (
-	ErrFileWriterCouldNotOpenFile = errors.New("could not open file")
-	ErrFileWriterCouldNotSeek     = errors.New("could not seek")
-	ErrFileWriterCouldNotWrite    = errors.New("could not write data into file")
-	ErrFileWriterCouldNotClose    = errors.New("could not close")
+	ErrFileWriterCouldNotOpenFile = errors.New("package writer - could not open file")
+	ErrFileWriterCouldNotSeek     = errors.New("package writer - could not seek")
+	ErrFileWriterCouldNotWrite    = errors.New("package writer - could not write data into file")
+	ErrFileWriterCouldNotClose    = errors.New("package writer - could not close")
 )
 
 type fileWriter struct {
