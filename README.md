@@ -1,6 +1,6 @@
 # FS Pool
 
-![example workflow](https://github.com/github/docs/actions/workflows/go-test.yml/badge.svg)
+![example workflow](https://github.com/amirvalhalla/fspool/blob/master/.github/workflows/go-test.yml/badge.svg)
 
 ### what is FS Pool ?
 
