@@ -1,6 +1,6 @@
 # FS Pool
 
-[![FsPool CI](https://github.com/amirvalhalla/fspool/actions/workflows/go-test.yml/badge.svg?branch=master)](https://github.com/amirvalhalla/fspool/actions/workflows/go-test.yml)
+[![FsPool CI/CD](https://github.com/amirvalhalla/fspool/actions/workflows/go-test.yml/badge.svg)](https://github.com/amirvalhalla/fspool/actions/workflows/go-test.yml)
 
 ### what is FS Pool ?
 
