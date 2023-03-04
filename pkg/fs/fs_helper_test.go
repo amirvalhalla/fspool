@@ -1,6 +1,7 @@
 package fs
 
 import (
+	mockfs "github.com/amirvalhalla/fspool/mocks/fs"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -11,7 +12,7 @@ func TestIsFileExists(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath("/test/test.txt").Return(nil, nil).Times(1)
 
 	err := IsFileExists("/test/test.txt", mockFile)
@@ -23,7 +24,7 @@ func TestIsFileExists_File_IsNotExists(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath("/test/test.txt").Return(nil, ErrFileIsNotExists).Times(1)
 
 	err := IsFileExists("/test/test.txt", mockFile)
@@ -35,7 +36,7 @@ func TestIsDirectoryExists(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath("/test").Return(nil, nil).Times(1)
 	mockFile.EXPECT().IsNotExist(nil).Return(false).Times(1)
 
@@ -48,7 +49,7 @@ func TestIsDirectoryExists_DirectoryIsNotExists(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath("/test").Return(nil, ErrDirectoryIsNotExists).Times(1)
 	mockFile.EXPECT().IsNotExist(ErrDirectoryIsNotExists).Return(true).Times(1)
 
@@ -61,7 +62,7 @@ func TestCreateDirectory(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().MkdirAll("/test", os.ModePerm).Return(nil).Times(1)
 
 	err := CreateDirectory("/test", mockFile)
@@ -73,7 +74,7 @@ func TestCreateDirectory_CouldNotCreateDirectory(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().MkdirAll("/test", os.ModePerm).Return(ErrCouldNotCreateDirectory).Times(1)
 
 	err := CreateDirectory("/test", mockFile)
