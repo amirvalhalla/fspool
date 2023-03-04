@@ -19,10 +19,10 @@ jobs:
         with:
           go-version: 1.19
           
-      - name: Upload coverage reports to Codecov
+      - if: matrix.go == '1.19'
         uses: codecov/codecov-action@v3
         with:
-         token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Test
         run: go test -v ./...
