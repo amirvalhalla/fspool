@@ -2,6 +2,7 @@ package cfgs
 
 import (
 	"github.com/amirvalhalla/fspool/pkg/cfgs"
+	fsConfig "github.com/amirvalhalla/fspool/pkg/cfgs/fs"
 	"time"
 )
 
@@ -26,4 +27,15 @@ type FSPoolConfiguration struct {
 	FlushType     cfgs.FlushType //required
 	FlushDuration time.Duration  //required (depends on FlushType)
 	FlushSize     uint64         //required  (depends on FlushType)
+}
+
+func (c FSPoolConfiguration) MapToFsConfiguration() fsConfig.FSConfiguration {
+	return fsConfig.FSConfiguration{
+		Perm:          c.Perm,
+		MemoryRent:    c.MemoryRent,
+		ReaderLimit:   c.ReaderLimit,
+		FlushType:     c.FlushType,
+		FlushDuration: c.FlushDuration,
+		FlushSize:     c.FlushSize,
+	}
 }

@@ -2,91 +2,102 @@
 package fs
 
 import (
+	"errors"
+	"github.com/amirvalhalla/fspool/pkg/cfgs"
+	fsConfig "github.com/amirvalhalla/fspool/pkg/cfgs/fs"
 	"github.com/amirvalhalla/fspool/pkg/reader"
 	"github.com/amirvalhalla/fspool/pkg/writer"
-	"sync"
+	"io"
+	"io/fs"
+	"os"
+	"path/filepath"
 )
 
-type ConfigType uint8
-
-const (
-	FsPoolConfigurationType ConfigType = 0
-	FsConfigurationType     ConfigType = 1
+var (
+	ErrFilesystemFilepathIsEmpty                 = errors.New("could not create new file system instance - path is empty")
+	ErrFilesystemMemoryRentConflictWithFlushSize = errors.New("memory rent size always should be greater than flush size")
 )
 
-// configurationOverride: for detecting which Configuration Filesystem instance using , if client enter FSConfiguration then it will override on FSPoolConfiguration
-// by default if client don't fill FSConfiguration struct and just pass it , the system will use FSPoolConfiguration as general config
-// tip : entering FsPerm & FilePath in FSConfiguration is required!
+type Filesystem interface {
+}
+
 type filesystem struct {
 	filePath   string
-	fsConfig   interface{}
-	configType ConfigType
-	mu         sync.RWMutex
-	fileReader []reader.FileReader
+	dirPath    string
+	config     fsConfig.FSConfiguration
+	fileReader reader.FileReader
 	fileWriter writer.FileWriter
 }
 
-//// Filesystem interface is top layer of FileReader and FileWriter to handle reading or writing easier
-//type Filesystem interface {
-//}
-//
-//// NewFilesystem will return a new instance from Filesystem interface
-//func NewFilesystem(filePath string, fsPoolConfig fsPoolCfgs.FSPoolConfiguration, fsConfig fsCfgs.FSConfiguration) (Filesystem, error) {
-//	var err error
-//	var configType ConfigType
-//	var config interface{}
-//	var fileReader reader.FileReader
-//	var fileWriter writer.FileWriter
-//
-//	if fsConfig.FlushSize == 0 && fsConfig.FlushDuration == 0 && fsConfig.MemoryRent == 0 && fsConfig.ReaderLimit == 0 {
-//		configType = FsPoolConfigurationType
-//		config = fsPoolConfig
-//	} else {
-//		configType = FsConfigurationType
-//		config = fsConfig
-//	}
-//
-//	if configType == FsPoolConfigurationType {
-//		if fileWriter, fileReader, err = newRwBasedOnCfgs(filePath, fsPoolConfig.Perm); err != nil {
-//			return nil, err
-//		}
-//	} else if configType == FsConfigurationType {
-//		if fileWriter, fileReader, err = newRwBasedOnCfgs(filePath, fsConfig.Perm); err != nil {
-//			return nil, err
-//		}
-//	}
-//
-//	return &filesystem{
-//		fsConfig:   config,
-//		configType: configType,
-//		mu:         sync.RWMutex{},
-//		fileWriter: fileWriter,
-//		fileReader: fileReader,
-//	}, nil
-//}
-//
-//func newRwBasedOnCfgs(filePath string, perm cfgs.FSPerm) (writer.FileWriter, reader.FileReader, error) {
-//	var err error
-//	var fileReader reader.FileReader
-//	var fileWriter writer.FileWriter
-//
-//	switch perm {
-//	case cfgs.ROnly:
-//		if fileReader, err = reader.NewFileReader(filePath); err != nil {
-//			return nil, nil, err
-//		}
-//	case cfgs.WOnly:
-//		if fileWriter, err = writer.NewFileWriter(filePath); err != nil {
-//			return nil, nil, err
-//		}
-//	case cfgs.RW:
-//		if fileWriter, err = writer.NewFileWriter(filePath); err != nil {
-//			return nil, nil, err
-//		}
-//		if fileReader, err = reader.NewFileReader(filePath); err != nil {
-//			return nil, nil, err
-//		}
-//	}
-//
-//	return fileWriter, fileReader, nil
-//}
+// File override os.File interface of golang with RW interfaces
+type File interface {
+	io.Writer
+	io.WriterAt
+	io.WriterTo
+	io.WriteCloser
+	io.WriteSeeker
+	io.ByteWriter
+	io.StringWriter
+	io.Reader
+	io.ReaderAt
+	io.Seeker
+	io.Closer
+	io.ByteReader
+	io.ReaderFrom
+	io.RuneReader
+	io.RuneScanner
+	io.ReadSeekCloser
+	io.ReadSeeker
+	fs.FileInfo
+	Stat() (os.FileInfo, error)
+	StatWithFilePath(filePath string) (os.FileInfo, error)
+	IsNotExist(err error) bool
+	MkdirAll(path string, perm os.FileMode) error
+}
+
+func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file File) (Filesystem, error) {
+	var dirPath string
+	var fReader reader.FileReader
+	var fWriter writer.FileWriter
+
+	if fPath == "" || len(fPath) <= 0 {
+		return nil, ErrFilesystemFilepathIsEmpty
+	}
+
+	if config.FlushType == cfgs.FlushBySize {
+		if config.MemoryRent < config.FlushSize {
+			return nil, ErrFilesystemMemoryRentConflictWithFlushSize
+		}
+	}
+
+	if config.Perm == cfgs.ROnly {
+		if err := IsFileExists(fPath, file); err != nil {
+			return nil, err
+		}
+	} else if err := IsFileExists(fPath, file); err != nil {
+		dirPath = filepath.Dir(fPath)
+		if err := IsDirectoryExists(fPath, file); err != nil {
+			if err := CreateDirectory(dirPath, file); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	switch config.Perm {
+	case cfgs.ROnly:
+		fReader = reader.NewFileReader(file)
+	case cfgs.WOnly:
+		fWriter = writer.NewFileWriter(file)
+	case cfgs.RW:
+		fReader = reader.NewFileReader(file)
+		fWriter = writer.NewFileWriter(file)
+	}
+
+	return &filesystem{
+		filePath:   fPath,
+		dirPath:    dirPath,
+		config:     config,
+		fileReader: fReader,
+		fileWriter: fWriter,
+	}, nil
+}

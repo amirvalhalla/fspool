@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+var (
+	KB uint64 = 1024
+	MB        = KB * KB
+)
+
 /*
 * FSConfiguration is a configuration for each reader or writer instance of you will get from existing fs pool
 * Perm: will define permission of fs
@@ -21,4 +26,13 @@ type FSConfiguration struct {
 	FlushType     cfgs.FlushType
 	FlushDuration time.Duration //depends on FlushType
 	FlushSize     uint64        //depends on FlushType
+}
+
+// New sets default config for FSConfiguration
+func (c *FSConfiguration) New() {
+	c.Perm = cfgs.RW
+	c.MemoryRent = 50 * MB
+	c.ReaderLimit = 10
+	c.FlushType = cfgs.FlushBySize
+	c.FlushSize = 25 * MB
 }
