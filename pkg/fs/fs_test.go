@@ -1,6 +1,7 @@
 package fs
 
 import (
+	mockfs "github.com/amirvalhalla/fspool/mocks/fs"
 	cfgs2 "github.com/amirvalhalla/fspool/pkg/cfgs"
 	cfgs "github.com/amirvalhalla/fspool/pkg/cfgs/fs"
 	"github.com/golang/mock/gomock"
@@ -16,7 +17,7 @@ func TestNewFilesystem(t *testing.T) {
 
 	someFilePath := filepath.Join("/test", "/test.txt")
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath(someFilePath).Return(mockFile, nil).Times(1)
 
 	fsConfig := cfgs.FSConfiguration{}
@@ -33,7 +34,7 @@ func TestNewFilesystem_With_ROnly_Perm(t *testing.T) {
 
 	someFilePath := filepath.Join("/test", "/test.txt")
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath(someFilePath).Return(mockFile, nil).Times(1)
 
 	fsConfig := cfgs.FSConfiguration{}
@@ -52,7 +53,7 @@ func TestNewFilesystem_With_WOnly_Perm(t *testing.T) {
 
 	someFilePath := filepath.Join("/test", "/test.txt")
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 	mockFile.EXPECT().StatWithFilePath(someFilePath).Return(mockFile, nil).Times(1)
 
 	fsConfig := cfgs.FSConfiguration{}
@@ -69,7 +70,7 @@ func TestNewFilesystem_EmptyFilePath(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 
 	fsConfig := cfgs.FSConfiguration{}
 	fsConfig.New()
@@ -85,7 +86,7 @@ func TestNewFilesystem_ConflictInMemoryRentSizeWithFlushSize(t *testing.T) {
 
 	someFilePath := filepath.Join("/test", "/test.txt")
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 
 	fsConfig := cfgs.FSConfiguration{}
 	fsConfig.New()
@@ -103,7 +104,7 @@ func TestNewFilesystem_FilePathIsNotExists_With_ReadOnly_Permission(t *testing.T
 
 	someFilePath := filepath.Join("/test", "/test.txt")
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 
 	fsConfig := cfgs.FSConfiguration{}
 	fsConfig.New()
@@ -123,7 +124,7 @@ func TestNewFilesystem_FilePathIsNotExists_CouldNotCreateDirectory(t *testing.T)
 	someFilePath := filepath.Join("/test", "/test.txt")
 	someDirPath := filepath.Join("/test")
 
-	mockFile := NewMockFile(mockCtrl)
+	mockFile := mockfs.NewMockFile(mockCtrl)
 
 	fsConfig := cfgs.FSConfiguration{}
 	fsConfig.New()
