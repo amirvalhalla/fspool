@@ -1,7 +1,7 @@
 # FS Pool
 
 [![FsPool CI/CD](https://github.com/amirvalhalla/fspool/actions/workflows/go-test.yml/badge.svg)](https://github.com/amirvalhalla/fspool/actions/workflows/go-test.yml)
-
+[![CodeCov](https://codecov.io/gh/amirvalhalla/fspool/branch/develop/graph/badge.svg)](https://codecov.io/gh/amirvalhalla/fspool/branch/develop)
 ### under developing !
 
 ### what is FS Pool ?
