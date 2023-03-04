@@ -22,7 +22,7 @@ type filesystem struct {
 	fsConfig   interface{}
 	configType ConfigType
 	mu         sync.RWMutex
-	fileReader reader.FileReader
+	fileReader []reader.FileReader
 	fileWriter writer.FileWriter
 }
 

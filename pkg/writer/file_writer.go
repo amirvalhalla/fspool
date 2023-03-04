@@ -4,6 +4,7 @@ package writer
 import (
 	"errors"
 	"io"
+	"sync"
 )
 
 var (
@@ -14,6 +15,7 @@ var (
 
 type fileWriter struct {
 	wFile File
+	rwMu  sync.RWMutex
 }
 
 // FileWriter interface gives you some options for writing into a file
@@ -44,6 +46,9 @@ func NewFileWriter(file File) FileWriter {
 
 // AddOrUpdateData will add or update raw data into file
 func (w *fileWriter) AddOrUpdateData(rawData []byte, offset int64, seek int) error {
+	w.rwMu.Lock()
+	defer w.rwMu.Unlock()
+
 	_, err := w.wFile.Seek(offset, seek)
 
 	if err != nil {
@@ -61,6 +66,9 @@ func (w *fileWriter) AddOrUpdateData(rawData []byte, offset int64, seek int) err
 
 // Close func provides close writer instance
 func (w *fileWriter) Close() error {
+	w.rwMu.Lock()
+	defer w.rwMu.Unlock()
+
 	if err := w.wFile.Close(); err != nil {
 		return ErrFileWriterCouldNotClose
 	} else {
