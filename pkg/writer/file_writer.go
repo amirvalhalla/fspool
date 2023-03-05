@@ -20,8 +20,8 @@ type fileWriter struct {
 
 // FileWriter interface gives you some options for writing into a file
 type FileWriter interface {
-	// AddOrUpdateData will add or update raw data into file
-	AddOrUpdateData(rawData []byte, offset int64, seek int) error
+	// Write will write or update raw data into file
+	Write(rawData []byte, offset int64, seek int) error
 	// Close func provides close writer instance
 	Close() error
 }
@@ -44,8 +44,8 @@ func NewFileWriter(file File) FileWriter {
 	}
 }
 
-// AddOrUpdateData will add or update raw data into file
-func (w *fileWriter) AddOrUpdateData(rawData []byte, offset int64, seek int) error {
+// Write will write or update raw data into file
+func (w *fileWriter) Write(rawData []byte, offset int64, seek int) error {
 	w.rwMu.Lock()
 	defer w.rwMu.Unlock()
 

@@ -57,20 +57,6 @@ func (m *MockFileWriter) EXPECT() *MockFileWriterMockRecorder {
 	return m.recorder
 }
 
-// AddOrUpdateData mocks base method.
-func (m *MockFileWriter) AddOrUpdateData(rawData []byte, offset int64, seek int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOrUpdateData", rawData, offset, seek)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// AddOrUpdateData indicates an expected call of AddOrUpdateData.
-func (mr *MockFileWriterMockRecorder) AddOrUpdateData(rawData, offset, seek interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOrUpdateData", reflect.TypeOf((*MockFileWriter)(nil).AddOrUpdateData), rawData, offset, seek)
-}
-
 // Close mocks base method.
 func (m *MockFileWriter) Close() error {
 	m.ctrl.T.Helper()
@@ -83,6 +69,20 @@ func (m *MockFileWriter) Close() error {
 func (mr *MockFileWriterMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockFileWriter)(nil).Close))
+}
+
+// Write mocks base method.
+func (m *MockFileWriter) Write(rawData []byte, offset int64, seek int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Write", rawData, offset, seek)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Write indicates an expected call of Write.
+func (mr *MockFileWriterMockRecorder) Write(rawData, offset, seek interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockFileWriter)(nil).Write), rawData, offset, seek)
 }
 
 // MockFile is a mock of File interface.
