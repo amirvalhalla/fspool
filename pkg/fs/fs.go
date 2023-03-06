@@ -8,6 +8,7 @@ import (
 	"github.com/amirvalhalla/fspool/pkg/file"
 	"github.com/amirvalhalla/fspool/pkg/reader"
 	"github.com/amirvalhalla/fspool/pkg/writer"
+	"path/filepath"
 )
 
 var (
@@ -26,7 +27,7 @@ type filesystem struct {
 	fileWriter writer.FileWriter
 }
 
-func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File) (Filesystem, error) {
+func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File, statFunc Stat, isNotExistFunc IsNotExist, mkdirAllFunc MkdirAll) (Filesystem, error) {
 	var dirPath string
 	var fReader reader.FileReader
 	var fWriter writer.FileWriter
@@ -41,18 +42,18 @@ func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File
 		}
 	}
 
-	//if config.Perm == cfgs.ROnly {
-	//	if err := IsFileExists(fPath); err != nil {
-	//		return nil, err
-	//	}
-	//} else if err := IsFileExists(fPath); err != nil {
-	//	dirPath = filepath.Dir(fPath)
-	//	if err := IsDirectoryExists(fPath); err != nil {
-	//		if err := CreateDirectory(dirPath); err != nil {
-	//			return nil, err
-	//		}
-	//	}
-	//}
+	if config.Perm == cfgs.ROnly {
+		if err := IsFileExists(fPath, statFunc); err != nil {
+			return nil, err
+		}
+	} else if err := IsFileExists(fPath, statFunc); err != nil {
+		dirPath = filepath.Dir(fPath)
+		if err := IsDirectoryExists(fPath, statFunc, isNotExistFunc); err != nil {
+			if err := CreateDirectory(dirPath, mkdirAllFunc); err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	switch config.Perm {
 	case cfgs.ROnly:
