@@ -2,8 +2,13 @@ package fs
 
 import (
 	"errors"
+	"io/fs"
 	"os"
 )
+
+type Stat func(path string) (fs.FileInfo, error)
+type IsNotExist func(err error) bool
+type MkdirAll func(path string, mode fs.FileMode) error
 
 var (
 	ErrFileIsNotExists         = errors.New("file path doesn't exist")
@@ -11,16 +16,17 @@ var (
 	ErrCouldNotCreateDirectory = errors.New("could not create directory")
 )
 
-func IsFileExists(filePath string, file File) error {
-	if _, err := file.StatWithFilePath(filePath); err != nil {
+// IsFileExists checks file exist or not
+func IsFileExists(path string, statFunc Stat) error {
+	if _, err := statFunc(path); err != nil {
 		return ErrFileIsNotExists
 	}
-
 	return nil
 }
 
-func IsDirectoryExists(dirPath string, file File) error {
-	if _, err := file.StatWithFilePath(dirPath); file.IsNotExist(err) {
+// IsDirectoryExists checks directory exist or not
+func IsDirectoryExists(path string, statFunc Stat, isNotExistFunc IsNotExist) error {
+	if _, err := statFunc(path); isNotExistFunc(err) {
 		if err != nil {
 			return ErrDirectoryIsNotExists
 		}
@@ -28,8 +34,9 @@ func IsDirectoryExists(dirPath string, file File) error {
 	return nil
 }
 
-func CreateDirectory(dirPath string, file File) error {
-	if err := file.MkdirAll(dirPath, os.ModePerm); err != nil {
+// CreateDirectory will create directory recursively
+func CreateDirectory(path string, mkdirAllFunc MkdirAll) error {
+	if err := mkdirAllFunc(path, os.ModePerm); err != nil {
 		return ErrCouldNotCreateDirectory
 	}
 	return nil
