@@ -3,9 +3,7 @@ package reader
 
 import (
 	"errors"
-	"io"
-	"io/fs"
-	"os"
+	"github.com/amirvalhalla/fspool/pkg/file"
 	"sync"
 )
 
@@ -18,7 +16,7 @@ var (
 )
 
 type fileReader struct {
-	rFile File
+	rFile file.File
 	rwMu  sync.RWMutex
 }
 
@@ -32,24 +30,8 @@ type FileReader interface {
 	Close() error
 }
 
-// File override os.File interface of golang with ROnly interfaces
-type File interface {
-	io.Reader
-	io.ReaderAt
-	io.Seeker
-	io.Closer
-	io.ByteReader
-	io.ReaderFrom
-	io.RuneReader
-	io.RuneScanner
-	io.ReadSeekCloser
-	io.ReadSeeker
-	fs.FileInfo
-	Stat() (os.FileInfo, error)
-}
-
 // NewFileReader func provides new instance of FileReader interface with unique memory addresses of its objects
-func NewFileReader(file File) FileReader {
+func NewFileReader(file file.File) FileReader {
 	return &fileReader{
 		rFile: file,
 	}

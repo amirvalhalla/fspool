@@ -5,12 +5,9 @@ import (
 	"errors"
 	"github.com/amirvalhalla/fspool/pkg/cfgs"
 	fsConfig "github.com/amirvalhalla/fspool/pkg/cfgs/fs"
+	"github.com/amirvalhalla/fspool/pkg/file"
 	"github.com/amirvalhalla/fspool/pkg/reader"
 	"github.com/amirvalhalla/fspool/pkg/writer"
-	"io"
-	"io/fs"
-	"os"
-	"path/filepath"
 )
 
 var (
@@ -29,33 +26,7 @@ type filesystem struct {
 	fileWriter writer.FileWriter
 }
 
-// File override os.File interface of golang with RW interfaces
-type File interface {
-	io.Writer
-	io.WriterAt
-	io.WriterTo
-	io.WriteCloser
-	io.WriteSeeker
-	io.ByteWriter
-	io.StringWriter
-	io.Reader
-	io.ReaderAt
-	io.Seeker
-	io.Closer
-	io.ByteReader
-	io.ReaderFrom
-	io.RuneReader
-	io.RuneScanner
-	io.ReadSeekCloser
-	io.ReadSeeker
-	fs.FileInfo
-	Stat() (os.FileInfo, error)
-	StatWithFilePath(filePath string) (os.FileInfo, error)
-	IsNotExist(err error) bool
-	MkdirAll(path string, perm os.FileMode) error
-}
-
-func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file File) (Filesystem, error) {
+func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File) (Filesystem, error) {
 	var dirPath string
 	var fReader reader.FileReader
 	var fWriter writer.FileWriter
@@ -70,18 +41,18 @@ func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file File) (Fi
 		}
 	}
 
-	if config.Perm == cfgs.ROnly {
-		if err := IsFileExists(fPath, file); err != nil {
-			return nil, err
-		}
-	} else if err := IsFileExists(fPath, file); err != nil {
-		dirPath = filepath.Dir(fPath)
-		if err := IsDirectoryExists(fPath, file); err != nil {
-			if err := CreateDirectory(dirPath, file); err != nil {
-				return nil, err
-			}
-		}
-	}
+	//if config.Perm == cfgs.ROnly {
+	//	if err := IsFileExists(fPath); err != nil {
+	//		return nil, err
+	//	}
+	//} else if err := IsFileExists(fPath); err != nil {
+	//	dirPath = filepath.Dir(fPath)
+	//	if err := IsDirectoryExists(fPath); err != nil {
+	//		if err := CreateDirectory(dirPath); err != nil {
+	//			return nil, err
+	//		}
+	//	}
+	//}
 
 	switch config.Perm {
 	case cfgs.ROnly:

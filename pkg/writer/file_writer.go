@@ -3,7 +3,7 @@ package writer
 
 import (
 	"errors"
-	"io"
+	"github.com/amirvalhalla/fspool/pkg/file"
 	"sync"
 )
 
@@ -14,7 +14,7 @@ var (
 )
 
 type fileWriter struct {
-	wFile File
+	wFile file.File
 	rwMu  sync.RWMutex
 }
 
@@ -26,19 +26,8 @@ type FileWriter interface {
 	Close() error
 }
 
-// File override os.File interface of golang with WOnly interfaces
-type File interface {
-	io.Writer
-	io.WriterAt
-	io.WriterTo
-	io.WriteCloser
-	io.WriteSeeker
-	io.ByteWriter
-	io.StringWriter
-}
-
 // NewFileWriter func provides new instance of FileWriter interface with unique memory addresses of its objects
-func NewFileWriter(file File) FileWriter {
+func NewFileWriter(file file.File) FileWriter {
 	return &fileWriter{
 		wFile: file,
 	}
