@@ -13,7 +13,7 @@ func TestNewFileReader(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	assert.NotNil(t, fReader)
 }
@@ -23,7 +23,7 @@ func TestFileReader_ReadData(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Seek(int64(0), 0).Return(int64(0), nil).Times(1)
 	mockFile.EXPECT().Read([]byte{}).Return(0, nil).Times(1)
@@ -38,7 +38,7 @@ func TestFileReader_ReadData_CouldNotSeek(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Seek(int64(0), 0).Return(int64(0), ErrFileReaderCouldNotSeek).Times(1)
 
@@ -52,7 +52,7 @@ func TestFileReader_ReadData_CouldNotRead(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Seek(int64(0), 0).Return(int64(0), nil).Times(1)
 	mockFile.EXPECT().Read([]byte{}).Return(0, ErrFileReaderCouldNotRead).Times(1)
@@ -68,7 +68,7 @@ func TestFileReader_ReadAllData(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFileInfo := mockfile.NewMockFileInfo(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Stat().Return(mockFileInfo, nil).Times(1)
 	mockFileInfo.EXPECT().Size().Return(int64(0)).Times(1)
@@ -84,7 +84,7 @@ func TestFileReader_ReadAllData_CouldNotGetFileStat(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Stat().Return(nil, ErrFileReaderCouldNotGetFileStat).Times(1)
 
@@ -99,7 +99,7 @@ func TestFileReader_ReadAllData_CouldNotReadAllData(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFileInfo := mockfile.NewMockFileInfo(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Stat().Return(mockFileInfo, nil).Times(1)
 	mockFileInfo.EXPECT().Size().Return(int64(0)).Times(1)
@@ -115,7 +115,7 @@ func TestFileReader_Close(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Close().Return(nil).Times(1)
 
@@ -129,7 +129,7 @@ func TestFileReader_Close_CouldNotClose(t *testing.T) {
 	defer mockCtrl.Finish()
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
-	fReader := NewFileReader(mockFile)
+	fReader, _ := NewFileReader(mockFile)
 
 	mockFile.EXPECT().Close().Return(ErrFileReaderCouldNotClose).Times(1)
 
