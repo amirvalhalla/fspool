@@ -4,6 +4,7 @@ package reader
 import (
 	"errors"
 	"github.com/amirvalhalla/fspool/pkg/file"
+	"github.com/google/uuid"
 	"sync"
 )
 
@@ -16,6 +17,7 @@ var (
 )
 
 type fileReader struct {
+	id    uuid.UUID
 	rFile file.File
 	rwMu  sync.RWMutex
 }
@@ -31,10 +33,13 @@ type FileReader interface {
 }
 
 // NewFileReader func provides new instance of FileReader interface with unique memory addresses of its objects
-func NewFileReader(file file.File) FileReader {
+func NewFileReader(file file.File) (FileReader, uuid.UUID) {
+	id := uuid.New()
+
 	return &fileReader{
+		id:    id,
 		rFile: file,
-	}
+	}, id
 }
 
 // ReadData func provides reading data from file by defining custom pos & seek option
