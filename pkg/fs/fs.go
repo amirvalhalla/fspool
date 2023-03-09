@@ -110,8 +110,8 @@ func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File
 // Write will write or update raw data into file
 func (f *filesystem) Write(rawData []byte, offset int64, seek int) error {
 
-	if f.writer == nil {
-		return ErrFilesystemWriterNil
+	if err := f.validateWriter(); err != nil {
+		return err
 	}
 
 	if err := f.writer.Write(rawData, offset, seek); err != nil {
@@ -124,8 +124,8 @@ func (f *filesystem) Write(rawData []byte, offset int64, seek int) error {
 // Sync will sync data from in-memory to disk
 func (f *filesystem) Sync() error {
 
-	if f.writer == nil {
-		return ErrFilesystemWriterNil
+	if err := f.validateWriter(); err != nil {
+		return err
 	}
 
 	if err := f.writer.Sync(); err != nil {
@@ -138,8 +138,8 @@ func (f *filesystem) Sync() error {
 // GetWriterId return id of writer instance
 func (f *filesystem) GetWriterId() (uuid.UUID, error) {
 
-	if f.writer == nil {
-		return uuid.Nil, ErrFilesystemWriterNil
+	if err := f.validateWriter(); err != nil {
+		return uuid.Nil, err
 	}
 
 	return f.writer.GetId(), nil
@@ -148,8 +148,8 @@ func (f *filesystem) GetWriterId() (uuid.UUID, error) {
 // CloseWriter will close writer of filesystem instance
 func (f *filesystem) CloseWriter() error {
 
-	if f.writer == nil {
-		return ErrFilesystemWriterNil
+	if err := f.validateWriter(); err != nil {
+		return err
 	}
 
 	if err := f.writer.Close(); err != nil {
@@ -162,12 +162,8 @@ func (f *filesystem) CloseWriter() error {
 // ReadData func provides reading data from file by defining custom pos & seek option
 func (f *filesystem) ReadData(offset int64, length int, seek int) ([]byte, error) {
 
-	if f.reader == nil {
-		return nil, ErrFilesystemReaderNil
-	}
-
-	if f.readerState {
-		return nil, ErrFilesystemReaderOccupying
+	if err := f.validateReader(); err != nil {
+		return nil, err
 	}
 
 	f.readerState = true
@@ -185,12 +181,8 @@ func (f *filesystem) ReadData(offset int64, length int, seek int) ([]byte, error
 // ReadAllData func provides reading all data from file
 func (f *filesystem) ReadAllData() ([]byte, error) {
 
-	if f.reader == nil {
-		return nil, ErrFilesystemReaderNil
-	}
-
-	if f.readerState {
-		return nil, ErrFilesystemReaderOccupying
+	if err := f.validateReader(); err != nil {
+		return nil, err
 	}
 
 	f.readerState = true
@@ -218,12 +210,8 @@ func (f *filesystem) GetReaderId() (uuid.UUID, error) {
 // CloseReader func provides close reader of filesystem instance
 func (f *filesystem) CloseReader() error {
 
-	if f.reader == nil {
-		return ErrFilesystemReaderNil
-	}
-
-	if f.readerState {
-		return ErrFilesystemReaderOccupying
+	if err := f.validateReader(); err != nil {
+		return err
 	}
 
 	if err := f.reader.Close(); err != nil {
@@ -238,5 +226,30 @@ func (f *filesystem) GetReaderState() (bool, error) {
 	if f.reader == nil {
 		return false, ErrFilesystemReaderNil
 	}
+
 	return f.readerState, nil
+}
+
+// validateWriter will validate some parameters which related to writer before run any func of Filesystem interface
+func (f *filesystem) validateWriter() error {
+
+	if f.writer == nil {
+		return ErrFilesystemWriterNil
+	}
+
+	return nil
+}
+
+// validateReader will validate some parameters which related to reader before run any func of Filesystem interface
+func (f *filesystem) validateReader() error {
+
+	if f.reader == nil {
+		return ErrFilesystemReaderNil
+	}
+
+	if f.readerState {
+		return ErrFilesystemReaderOccupying
+	}
+
+	return nil
 }

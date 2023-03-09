@@ -95,7 +95,7 @@ func (r *fileReader) Close() error {
 
 	if err := r.rFile.Close(); err != nil {
 		return ErrFileReaderCouldNotClose
-	} else {
-		return nil
 	}
+
+	return nil
 }
