@@ -47,15 +47,11 @@ func (w *fileWriter) Write(rawData []byte, offset int64, seek int) error {
 	w.rwMu.Lock()
 	defer w.rwMu.Unlock()
 
-	_, err := w.wFile.Seek(offset, seek)
-
-	if err != nil {
+	if _, err := w.wFile.Seek(offset, seek); err != nil {
 		return ErrFileWriterCouldNotSeek
 	}
 
-	_, err = w.wFile.Write(rawData)
-
-	if err != nil {
+	if _, err := w.wFile.Write(rawData); err != nil {
 		return ErrFileWriterCouldNotWrite
 	}
 
@@ -64,9 +60,13 @@ func (w *fileWriter) Write(rawData []byte, offset int64, seek int) error {
 
 // Sync will sync data from in-memory to disk
 func (w *fileWriter) Sync() error {
+	w.rwMu.Lock()
+	defer w.rwMu.Unlock()
+
 	if err := w.wFile.Sync(); err != nil {
 		return ErrFileWriterCouldNotSync
 	}
+
 	return nil
 }
 
@@ -82,7 +82,7 @@ func (w *fileWriter) Close() error {
 
 	if err := w.wFile.Close(); err != nil {
 		return ErrFileWriterCouldNotClose
-	} else {
-		return nil
 	}
+
+	return nil
 }
