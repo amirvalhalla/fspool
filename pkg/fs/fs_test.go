@@ -188,7 +188,7 @@ func TestFilesystem_Write_Writer_nil(t *testing.T) {
 
 	err := f.Write([]byte{2}, 0, io.SeekStart)
 
-	assert.EqualError(t, err, ErrFilesystemWriterHasBeenClosed.Error())
+	assert.EqualError(t, err, ErrFilesystemWriterNil.Error())
 }
 
 func TestFilesystem_Write_Writer_CouldNotWrite(t *testing.T) {
@@ -255,7 +255,7 @@ func TestFilesystem_GetWriterId_Writer_Nil(t *testing.T) {
 
 	_, err := f.GetWriterId()
 
-	assert.EqualError(t, err, ErrFilesystemWriterHasBeenClosed.Error())
+	assert.EqualError(t, err, ErrFilesystemWriterNil.Error())
 }
 
 func TestFilesystem_CloseWriter(t *testing.T) {
@@ -299,7 +299,7 @@ func TestFilesystem_CloseWriter_nil(t *testing.T) {
 
 	err := f.CloseWriter()
 
-	assert.EqualError(t, err, ErrFilesystemWriterHasBeenClosed.Error())
+	assert.EqualError(t, err, ErrFilesystemWriterNil.Error())
 }
 
 func TestFilesystem_CloseWriter_CouldNotClose(t *testing.T) {
@@ -366,7 +366,7 @@ func TestFilesystem_ReadData_Reader_nil(t *testing.T) {
 
 	_, err := f.ReadData(0, 0, io.SeekStart)
 
-	assert.EqualError(t, err, ErrFilesystemReaderEmpty.Error())
+	assert.EqualError(t, err, ErrFilesystemReaderNil.Error())
 }
 
 func TestFilesystem_ReadData_Reader_Occupying(t *testing.T) {
@@ -473,7 +473,7 @@ func TestFilesystem_ReadAllData_Reader_Nil(t *testing.T) {
 	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
 	_, err := f.ReadAllData()
 
-	assert.EqualError(t, err, ErrFilesystemReaderEmpty.Error())
+	assert.EqualError(t, err, ErrFilesystemReaderNil.Error())
 }
 
 func TestFilesystem_ReadAllData_Reader_Occupying(t *testing.T) {
@@ -583,7 +583,7 @@ func TestFilesystem_GetReaderId_Reader_Nil(t *testing.T) {
 
 	_, err := f.GetReaderId()
 
-	assert.EqualError(t, err, ErrFilesystemReaderEmpty.Error())
+	assert.EqualError(t, err, ErrFilesystemReaderNil.Error())
 }
 
 func TestFilesystem_CloseReader(t *testing.T) {
@@ -627,7 +627,7 @@ func TestFilesystem_CloseReader_Nil(t *testing.T) {
 
 	err := f.CloseReader()
 
-	assert.EqualError(t, err, ErrFilesystemReaderEmpty.Error())
+	assert.EqualError(t, err, ErrFilesystemReaderNil.Error())
 }
 
 func TestFilesystem_CloseReader_Occupying(t *testing.T) {
@@ -732,5 +732,5 @@ func TestFilesystem_GetReaderState_Nil(t *testing.T) {
 
 	_, err := f.GetReaderState()
 
-	assert.EqualError(t, err, ErrFilesystemReaderEmpty.Error())
+	assert.EqualError(t, err, ErrFilesystemReaderNil.Error())
 }
