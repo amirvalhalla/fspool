@@ -154,7 +154,7 @@ func TestFilesystem_Write(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFile.EXPECT().Seek(int64(0), io.SeekStart).Return(int64(0), nil).Times(1)
-	mockFile.EXPECT().Write([]byte{2}).Return(int(0), nil).Times(1)
+	mockFile.EXPECT().Write([]byte{2}).Return(0, nil).Times(1)
 
 	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
 	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
@@ -199,7 +199,7 @@ func TestFilesystem_Write_Writer_CouldNotWrite(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFile.EXPECT().Seek(int64(0), io.SeekStart).Return(int64(0), nil).Times(1)
-	mockFile.EXPECT().Write([]byte{2}).Return(int(0), ErrFilesystemCouldNotWrite).Times(1)
+	mockFile.EXPECT().Write([]byte{2}).Return(0, ErrFilesystemCouldNotWrite).Times(1)
 
 	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
 	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
@@ -212,6 +212,50 @@ func TestFilesystem_Write_Writer_CouldNotWrite(t *testing.T) {
 	err := f.Write([]byte{2}, 0, io.SeekStart)
 
 	assert.EqualError(t, err, ErrFilesystemCouldNotWrite.Error())
+}
+
+func TestFilesystem_GetWriterId(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+	fsConfig.Perm = cfgs2.WOnly
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	_, err := f.GetWriterId()
+
+	assert.Nil(t, err)
+}
+
+func TestFilesystem_GetWriterId_Writer_Nil(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+	fsConfig.Perm = cfgs2.ROnly
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	_, err := f.GetWriterId()
+
+	assert.EqualError(t, err, ErrFilesystemWriterHasBeenClosed.Error())
 }
 
 func TestFilesystem_CloseWriter(t *testing.T) {
@@ -288,7 +332,7 @@ func TestFilesystem_ReadData(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFile.EXPECT().Seek(int64(0), io.SeekStart).Return(int64(0), nil).Times(1)
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), nil).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).Times(1)
 
 	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
 	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
@@ -333,7 +377,7 @@ func TestFilesystem_ReadData_Reader_Occupying(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFile.EXPECT().Seek(int64(0), io.SeekStart).Return(int64(0), nil).AnyTimes()
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), nil).AnyTimes()
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).AnyTimes()
 
 	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
 	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
@@ -369,7 +413,7 @@ func TestFilesystem_ReadData_CouldNotReadData(t *testing.T) {
 
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFile.EXPECT().Seek(int64(0), io.SeekStart).Return(int64(0), nil).Times(1)
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), ErrFilesystemCouldNotReadData).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, ErrFilesystemCouldNotReadData).Times(1)
 
 	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
 	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
@@ -393,7 +437,7 @@ func TestFilesystem_ReadAllData(t *testing.T) {
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFileInfo := mockfile.NewMockFileInfo(mockCtrl)
 
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), nil).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).Times(1)
 	mockFile.EXPECT().Stat().Return(mockFileInfo, nil).Times(1)
 
 	mockFileInfo.EXPECT().Size().Return(int64(0)).Times(1)
@@ -441,7 +485,7 @@ func TestFilesystem_ReadAllData_Reader_Occupying(t *testing.T) {
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFileInfo := mockfile.NewMockFileInfo(mockCtrl)
 
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), nil).AnyTimes()
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).AnyTimes()
 	mockFile.EXPECT().Stat().Return(mockFileInfo, nil).AnyTimes()
 
 	mockFileInfo.EXPECT().Size().Return(int64(0)).AnyTimes()
@@ -480,7 +524,7 @@ func TestFilesystem_ReadAllData_CouldNotReadAllData(t *testing.T) {
 	mockFile := mockfile.NewMockFile(mockCtrl)
 	mockFileInfo := mockfile.NewMockFileInfo(mockCtrl)
 
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), ErrFilesystemCouldNotReadAllData).Times(1)
+	mockFile.EXPECT().Read([]byte{}).Return(0, ErrFilesystemCouldNotReadAllData).Times(1)
 	mockFile.EXPECT().Stat().Return(mockFileInfo, nil).Times(1)
 
 	mockFileInfo.EXPECT().Size().Return(int64(0)).Times(1)
@@ -496,6 +540,50 @@ func TestFilesystem_ReadAllData_CouldNotReadAllData(t *testing.T) {
 	_, err := f.ReadAllData()
 
 	assert.EqualError(t, err, ErrFilesystemCouldNotReadAllData.Error())
+}
+
+func TestFilesystem_GetReaderId(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+	fsConfig.Perm = cfgs2.ROnly
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	_, err := f.GetReaderId()
+
+	assert.Nil(t, err)
+}
+
+func TestFilesystem_GetReaderId_Reader_Nil(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+	fsConfig.Perm = cfgs2.WOnly
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	_, err := f.GetReaderId()
+
+	assert.EqualError(t, err, ErrFilesystemReaderEmpty.Error())
 }
 
 func TestFilesystem_CloseReader(t *testing.T) {
@@ -552,7 +640,7 @@ func TestFilesystem_CloseReader_Occupying(t *testing.T) {
 	mockFileInfo := mockfile.NewMockFileInfo(mockCtrl)
 
 	mockFile.EXPECT().Close().Return(nil).AnyTimes()
-	mockFile.EXPECT().Read([]byte{}).Return(int(0), nil).AnyTimes()
+	mockFile.EXPECT().Read([]byte{}).Return(0, nil).AnyTimes()
 	mockFile.EXPECT().Stat().Return(mockFileInfo, nil).AnyTimes()
 
 	mockFileInfo.EXPECT().Size().Return(int64(0)).AnyTimes()

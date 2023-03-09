@@ -3,6 +3,7 @@ package reader
 import (
 	mockfile "github.com/amirvalhalla/fspool/mocks/file"
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"testing"
@@ -108,6 +109,19 @@ func TestFileReader_ReadAllData_CouldNotReadAllData(t *testing.T) {
 	_, err := fReader.ReadAllData()
 
 	assert.EqualError(t, err, ErrFileReaderCouldNotReadAllData.Error())
+}
+
+func TestFileReader_GetId(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+	fReader, _ := NewFileReader(mockFile)
+
+	id := fReader.GetId()
+
+	_, err := uuid.Parse(id.String())
+	assert.Nil(t, err)
 }
 
 func TestFileReader_Close(t *testing.T) {
