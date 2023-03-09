@@ -33,7 +33,6 @@ func (c FSPoolConfiguration) MapToFsConfiguration() fsConfig.FSConfiguration {
 	return fsConfig.FSConfiguration{
 		Perm:          c.Perm,
 		MemoryRent:    c.MemoryRent,
-		ReaderLimit:   c.ReaderLimit,
 		FlushType:     c.FlushType,
 		FlushDuration: c.FlushDuration,
 		FlushSize:     c.FlushSize,

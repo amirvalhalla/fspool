@@ -17,12 +17,12 @@ var (
 	ErrFilesystemFilepathIsEmpty                 = errors.New("could not create new file system instance - path is empty")
 	ErrFilesystemMemoryRentConflictWithFlushSize = errors.New("filesystem memory rent size always should be greater than flush size")
 	ErrFilesystemCouldNotWrite                   = errors.New("filesystem could not write")
-	ErrFilesystemWriterHasBeenClosed             = errors.New("writer instance of filesystem has been closed")
+	ErrFilesystemWriterNil                       = errors.New("writer instance of filesystem has been closed or doesn't initialized")
 	ErrFilesystemCouldNotCloseWriter             = errors.New("filesystem could not close writer instance")
 	ErrFilesystemReaderOccupying                 = errors.New("filesystem doesn't have any free reader")
 	ErrFilesystemCouldNotReadData                = errors.New("filesystem could not read data")
 	ErrFilesystemCouldNotReadAllData             = errors.New("filesystem could not read all data")
-	ErrFilesystemReaderEmpty                     = errors.New("filesystem doesn't have any reader")
+	ErrFilesystemReaderNil                       = errors.New("reader instance of filesystem has been closed or doesn't initialized")
 	ErrFilesystemCouldNotCloseReader             = errors.New("filesystem could not close reader")
 )
 
@@ -104,10 +104,11 @@ func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File
 	}, nil
 }
 
+// Write will write or update raw data into file
 func (f *filesystem) Write(rawData []byte, offset int64, seek int) error {
 
 	if f.writer == nil {
-		return ErrFilesystemWriterHasBeenClosed
+		return ErrFilesystemWriterNil
 	}
 
 	if err := f.writer.Write(rawData, offset, seek); err != nil {
@@ -117,19 +118,21 @@ func (f *filesystem) Write(rawData []byte, offset int64, seek int) error {
 	return nil
 }
 
+// GetWriterId return id of writer instance
 func (f *filesystem) GetWriterId() (uuid.UUID, error) {
 
 	if f.writer == nil {
-		return uuid.Nil, ErrFilesystemWriterHasBeenClosed
+		return uuid.Nil, ErrFilesystemWriterNil
 	}
 
 	return f.writer.GetId(), nil
 }
 
+// CloseWriter will close writer of filesystem instance
 func (f *filesystem) CloseWriter() error {
 
 	if f.writer == nil {
-		return ErrFilesystemWriterHasBeenClosed
+		return ErrFilesystemWriterNil
 	}
 
 	if err := f.writer.Close(); err != nil {
@@ -139,10 +142,11 @@ func (f *filesystem) CloseWriter() error {
 	return nil
 }
 
+// ReadData func provides reading data from file by defining custom pos & seek option
 func (f *filesystem) ReadData(offset int64, length int, seek int) ([]byte, error) {
 
 	if f.reader == nil {
-		return nil, ErrFilesystemReaderEmpty
+		return nil, ErrFilesystemReaderNil
 	}
 
 	if f.readerState {
@@ -161,10 +165,11 @@ func (f *filesystem) ReadData(offset int64, length int, seek int) ([]byte, error
 	return rawData, nil
 }
 
+// ReadAllData func provides reading all data from file
 func (f *filesystem) ReadAllData() ([]byte, error) {
 
 	if f.reader == nil {
-		return nil, ErrFilesystemReaderEmpty
+		return nil, ErrFilesystemReaderNil
 	}
 
 	if f.readerState {
@@ -183,19 +188,21 @@ func (f *filesystem) ReadAllData() ([]byte, error) {
 	return rawData, nil
 }
 
+// GetReaderId return id of reader instance
 func (f *filesystem) GetReaderId() (uuid.UUID, error) {
 
 	if f.reader == nil {
-		return uuid.Nil, ErrFilesystemReaderEmpty
+		return uuid.Nil, ErrFilesystemReaderNil
 	}
 
 	return f.reader.GetId(), nil
 }
 
+// CloseReader func provides close reader of filesystem instance
 func (f *filesystem) CloseReader() error {
 
 	if f.reader == nil {
-		return ErrFilesystemReaderEmpty
+		return ErrFilesystemReaderNil
 	}
 
 	if f.readerState {
@@ -209,9 +216,10 @@ func (f *filesystem) CloseReader() error {
 	return nil
 }
 
+// GetReaderState return state of reader instance
 func (f *filesystem) GetReaderState() (bool, error) {
 	if f.reader == nil {
-		return false, ErrFilesystemReaderEmpty
+		return false, ErrFilesystemReaderNil
 	}
 	return f.readerState, nil
 }

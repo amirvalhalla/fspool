@@ -12,6 +12,7 @@ var (
 	ErrFileWriterCouldNotSeek  = errors.New("package writer - could not seek")
 	ErrFileWriterCouldNotWrite = errors.New("package writer - could not write data into file")
 	ErrFileWriterCouldNotClose = errors.New("package writer - could not close")
+	ErrFileWriterCouldNotSync  = errors.New("package writer - could not sync")
 )
 
 type fileWriter struct {
@@ -24,6 +25,8 @@ type fileWriter struct {
 type FileWriter interface {
 	// Write will write or update raw data into file
 	Write(rawData []byte, offset int64, seek int) error
+	// Sync will sync data from in-memory to disk
+	Sync() error
 	// GetId return id of FileWriter
 	GetId() uuid.UUID
 	// Close func provides close writer instance
@@ -56,6 +59,14 @@ func (w *fileWriter) Write(rawData []byte, offset int64, seek int) error {
 		return ErrFileWriterCouldNotWrite
 	}
 
+	return nil
+}
+
+// Sync will sync data from in-memory to disk
+func (w *fileWriter) Sync() error {
+	if err := w.wFile.Sync(); err != nil {
+		return ErrFileWriterCouldNotSync
+	}
 	return nil
 }
 
