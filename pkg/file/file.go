@@ -21,6 +21,7 @@ type File interface {
 	io.ReadSeekCloser
 	io.ReadSeeker
 	Stat() (os.FileInfo, error)
+	Sync() error
 }
 
 // FileInfo override fs.FileInfo interface of golang with RW interfaces

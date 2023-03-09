@@ -76,6 +76,34 @@ func TestFileReader_GetId(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestFileWriter_Sync(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+	mockFile.EXPECT().Sync().Return(nil).Times(1)
+
+	fWriter, _ := NewFileWriter(mockFile)
+
+	err := fWriter.Sync()
+
+	assert.Nil(t, err)
+}
+
+func TestFileWriter_Sync_CouldNotSync(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+	mockFile.EXPECT().Sync().Return(ErrFileWriterCouldNotSync).Times(1)
+
+	fWriter, _ := NewFileWriter(mockFile)
+
+	err := fWriter.Sync()
+
+	assert.EqualError(t, err, ErrFileWriterCouldNotSync.Error())
+}
+
 func TestFileWriter_Close(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
