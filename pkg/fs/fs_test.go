@@ -214,6 +214,72 @@ func TestFilesystem_Write_Writer_CouldNotWrite(t *testing.T) {
 	assert.EqualError(t, err, ErrFilesystemCouldNotWrite.Error())
 }
 
+func TestFilesystem_Sync(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+	mockFile.EXPECT().Sync().Return(nil).Times(1)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	err := f.Sync()
+
+	assert.Nil(t, err)
+}
+
+func TestFilesystem_Sync_Writer_Nil(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+	fsConfig.Perm = cfgs2.ROnly
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	err := f.Sync()
+
+	assert.EqualError(t, err, ErrFilesystemWriterNil.Error())
+}
+
+func TestFilesystem_Sync_CouldNotSync(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	someFilePath := filepath.Join("/test", "/test.txt")
+
+	mockFile := mockfile.NewMockFile(mockCtrl)
+	mockFile.EXPECT().Sync().Return(ErrFilesystemWriterCouldNotSync).Times(1)
+
+	mockFileHelper := mockfile.NewMockFileHelper(mockCtrl)
+	mockFileHelper.EXPECT().Stat(someFilePath).Return(nil, nil).Times(1)
+
+	fsConfig := cfgs.FSConfiguration{}
+	fsConfig.New()
+
+	f, _ := NewFilesystem(someFilePath, fsConfig, mockFile, mockFileHelper.Stat, mockFileHelper.IsNotExist, mockFileHelper.MkdirAll)
+
+	err := f.Sync()
+
+	assert.EqualError(t, err, ErrFilesystemWriterCouldNotSync.Error())
+}
+
 func TestFilesystem_GetWriterId(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
