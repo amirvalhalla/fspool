@@ -14,21 +14,24 @@ import (
 )
 
 var (
-	ErrFilesystemFilepathIsEmpty                 = errors.New("could not create new file system instance - path is empty")
-	ErrFilesystemMemoryRentConflictWithFlushSize = errors.New("filesystem memory rent size always should be greater than flush size")
-	ErrFilesystemCouldNotWrite                   = errors.New("filesystem could not write")
-	ErrFilesystemWriterNil                       = errors.New("writer instance of filesystem has been closed or doesn't initialized")
-	ErrFilesystemCouldNotCloseWriter             = errors.New("filesystem could not close writer instance")
-	ErrFilesystemReaderOccupying                 = errors.New("filesystem doesn't have any free reader")
-	ErrFilesystemCouldNotReadData                = errors.New("filesystem could not read data")
-	ErrFilesystemCouldNotReadAllData             = errors.New("filesystem could not read all data")
-	ErrFilesystemReaderNil                       = errors.New("reader instance of filesystem has been closed or doesn't initialized")
-	ErrFilesystemCouldNotCloseReader             = errors.New("filesystem could not close reader")
+	ErrFilesystemFilepathIsEmpty                 = errors.New("package fs - could not create new file system instance - path is empty")
+	ErrFilesystemMemoryRentConflictWithFlushSize = errors.New("package fs - filesystem memory rent size always should be greater than flush size")
+	ErrFilesystemCouldNotWrite                   = errors.New("package fs - filesystem could not write")
+	ErrFilesystemWriterNil                       = errors.New("package fs - writer instance of filesystem has been closed or doesn't initialized")
+	ErrFilesystemWriterCouldNotSync              = errors.New("package fs - writer instance of filesystem could not sync")
+	ErrFilesystemCouldNotCloseWriter             = errors.New("package fs - filesystem could not close writer instance")
+	ErrFilesystemReaderOccupying                 = errors.New("package fs - filesystem doesn't have any free reader")
+	ErrFilesystemCouldNotReadData                = errors.New("package fs - filesystem could not read data")
+	ErrFilesystemCouldNotReadAllData             = errors.New("package fs - filesystem could not read all data")
+	ErrFilesystemReaderNil                       = errors.New("package fs - reader instance of filesystem has been closed or doesn't initialized")
+	ErrFilesystemCouldNotCloseReader             = errors.New("package fs - filesystem could not close reader")
 )
 
 type Filesystem interface {
 	// Write will write or update raw data into file
 	Write(rawData []byte, offset int64, seek int) error
+	// Sync will sync data from in-memory to disk
+	Sync() error
 	// GetWriterId return id of writer instance
 	GetWriterId() (uuid.UUID, error)
 	// CloseWriter will close writer of filesystem instance
@@ -113,6 +116,20 @@ func (f *filesystem) Write(rawData []byte, offset int64, seek int) error {
 
 	if err := f.writer.Write(rawData, offset, seek); err != nil {
 		return ErrFilesystemCouldNotWrite
+	}
+
+	return nil
+}
+
+// Sync will sync data from in-memory to disk
+func (f *filesystem) Sync() error {
+
+	if f.writer == nil {
+		return ErrFilesystemWriterNil
+	}
+
+	if err := f.writer.Sync(); err != nil {
+		return ErrFilesystemWriterCouldNotSync
 	}
 
 	return nil
