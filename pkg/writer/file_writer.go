@@ -4,6 +4,7 @@ package writer
 import (
 	"errors"
 	"github.com/amirvalhalla/fspool/pkg/file"
+	"github.com/google/uuid"
 	"sync"
 )
 
@@ -14,6 +15,7 @@ var (
 )
 
 type fileWriter struct {
+	id    uuid.UUID
 	wFile file.File
 	rwMu  sync.RWMutex
 }
@@ -22,15 +24,19 @@ type fileWriter struct {
 type FileWriter interface {
 	// Write will write or update raw data into file
 	Write(rawData []byte, offset int64, seek int) error
+	// GetId return id of FileWriter
+	GetId() uuid.UUID
 	// Close func provides close writer instance
 	Close() error
 }
 
 // NewFileWriter func provides new instance of FileWriter interface with unique memory addresses of its objects
-func NewFileWriter(file file.File) FileWriter {
+func NewFileWriter(file file.File) (FileWriter, uuid.UUID) {
+	id := uuid.New()
 	return &fileWriter{
+		id:    id,
 		wFile: file,
-	}
+	}, id
 }
 
 // Write will write or update raw data into file
@@ -51,6 +57,11 @@ func (w *fileWriter) Write(rawData []byte, offset int64, seek int) error {
 	}
 
 	return nil
+}
+
+// GetId return id of FileWriter
+func (w *fileWriter) GetId() uuid.UUID {
+	return w.id
 }
 
 // Close func provides close writer instance

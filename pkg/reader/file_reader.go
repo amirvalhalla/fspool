@@ -28,6 +28,8 @@ type FileReader interface {
 	ReadData(offset int64, len int, seek int) ([]byte, error)
 	// ReadAllData func provides reading all data from file
 	ReadAllData() ([]byte, error)
+	// GetId return id of FileReader
+	GetId() uuid.UUID
 	// Close func provides close reader instance
 	Close() error
 }
@@ -79,6 +81,11 @@ func (r *fileReader) ReadAllData() ([]byte, error) {
 	}
 
 	return buff, nil
+}
+
+// GetId return id of FileReader
+func (r *fileReader) GetId() uuid.UUID {
+	return r.id
 }
 
 // Close func provides close reader instance

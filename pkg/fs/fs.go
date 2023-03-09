@@ -8,6 +8,7 @@ import (
 	"github.com/amirvalhalla/fspool/pkg/file"
 	"github.com/amirvalhalla/fspool/pkg/reader"
 	"github.com/amirvalhalla/fspool/pkg/writer"
+	"github.com/google/uuid"
 	"log"
 	"path/filepath"
 )
@@ -28,12 +29,16 @@ var (
 type Filesystem interface {
 	// Write will write or update raw data into file
 	Write(rawData []byte, offset int64, seek int) error
+	// GetWriterId return id of writer instance
+	GetWriterId() (uuid.UUID, error)
 	// CloseWriter will close writer of filesystem instance
 	CloseWriter() error
 	// ReadData func provides reading data from file by defining custom pos & seek option
 	ReadData(offset int64, length int, seek int) ([]byte, error)
 	// ReadAllData func provides reading all data from file
 	ReadAllData() ([]byte, error)
+	// GetReaderId return id of reader instance
+	GetReaderId() (uuid.UUID, error)
 	// CloseReader func provides close reader of filesystem instance
 	CloseReader() error
 	// GetReaderState return state of reader instance
@@ -83,10 +88,10 @@ func NewFilesystem(fPath string, config fsConfig.FSConfiguration, file file.File
 	case cfgs.ROnly:
 		fReader, _ = reader.NewFileReader(file)
 	case cfgs.WOnly:
-		fWriter = writer.NewFileWriter(file)
+		fWriter, _ = writer.NewFileWriter(file)
 	case cfgs.RW:
 		fReader, _ = reader.NewFileReader(file)
-		fWriter = writer.NewFileWriter(file)
+		fWriter, _ = writer.NewFileWriter(file)
 	}
 
 	return &filesystem{
@@ -110,6 +115,15 @@ func (f *filesystem) Write(rawData []byte, offset int64, seek int) error {
 	}
 
 	return nil
+}
+
+func (f *filesystem) GetWriterId() (uuid.UUID, error) {
+
+	if f.writer == nil {
+		return uuid.Nil, ErrFilesystemWriterHasBeenClosed
+	}
+
+	return f.writer.GetId(), nil
 }
 
 func (f *filesystem) CloseWriter() error {
@@ -167,6 +181,15 @@ func (f *filesystem) ReadAllData() ([]byte, error) {
 	}
 
 	return rawData, nil
+}
+
+func (f *filesystem) GetReaderId() (uuid.UUID, error) {
+
+	if f.reader == nil {
+		return uuid.Nil, ErrFilesystemReaderEmpty
+	}
+
+	return f.reader.GetId(), nil
 }
 
 func (f *filesystem) CloseReader() error {
